@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/casbin/casbin/v2"
 
@@ -82,7 +83,6 @@ func (h userController) SignInUser(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusInternalServerError, gin.H{"msg": "Password not matched"})
-	return
 
 }
 
@@ -96,11 +96,16 @@ func (h userController) AddUser(enforcer *casbin.Enforcer) gin.HandlerFunc {
 		utils.HashPassword(&user.Password)
 		user, err := h.userRepo.AddUser(user)
 		if err != nil {
+			if strings.Contains(err.Error(), "ERROR: duplicate key value violates unique constraint") {
+				ctx.JSON(409, gin.H{"error": "User already exists."})
+				return
+			}
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 
 		}
-		enforcer.AddGroupingPolicy(fmt.Sprint(user.ID), user.Role)
+		//enforcer.AddGroupingPolicy(fmt.Sprint(user.ID), user.Role)
+		enforcer.AddGroupingPolicy(fmt.Sprint(user.ID), "patient")
 		user.Password = ""
 		ctx.JSON(http.StatusOK, user)
 

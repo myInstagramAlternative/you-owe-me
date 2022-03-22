@@ -49,7 +49,6 @@ func SetupRoutes(db *gorm.DB) {
 	userController := controller.NewUserController(userRepository)
 
 	apiRoutes := httpRouter.Group("/api")
-
 	{
 		apiRoutes.POST("/register", userController.AddUser(enforcer))
 		apiRoutes.POST("/signin", userController.SignInUser)
@@ -63,6 +62,17 @@ func SetupRoutes(db *gorm.DB) {
 		userProtectedRoutes.DELETE("/:user", middleware.Authorize("report", "write", enforcer), userController.DeleteUser)
 	}
 
-	httpRouter.Run()
+	logRepository := repository.NewLogRepository(db)
+	if err := logRepository.Migrate(); err != nil {
+		log.Fatal("User migrate err", err)
+	}
+	logController := controller.NewLogController(logRepository)
 
+	logRoutes := apiRoutes.Group("/logs")
+	{
+		logRoutes.POST("/add", logController.AddLog)
+		logRoutes.POST("/upload", logController.Upload)
+	}
+
+	httpRouter.Run(":3000")
 }
