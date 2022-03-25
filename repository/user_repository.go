@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"casbin-golang/model"
+	"fuckoff-server/model"
 	"log"
 
 	"gorm.io/gorm"

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"casbin-golang/model"
-	"casbin-golang/route"
+	"fuckoff-server/model"
+	"fuckoff-server/route"
 	"log"
 
 	"github.com/joho/godotenv"

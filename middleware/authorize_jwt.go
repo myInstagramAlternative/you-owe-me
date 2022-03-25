@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"casbin-golang/utils"
 	"fmt"
+	"fuckoff-server/utils"
 	"net/http"
 
 	"github.com/dgrijalva/jwt-go"

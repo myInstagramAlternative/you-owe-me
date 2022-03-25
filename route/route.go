@@ -1,10 +1,10 @@
 package route
 
 import (
-	"casbin-golang/controller"
-	"casbin-golang/middleware"
-	"casbin-golang/repository"
 	"fmt"
+	"fuckoff-server/controller"
+	"fuckoff-server/middleware"
+	"fuckoff-server/repository"
 	"log"
 
 	"github.com/casbin/casbin/v2"
@@ -68,7 +68,7 @@ func SetupRoutes(db *gorm.DB) {
 	}
 	logController := controller.NewLogController(logRepository)
 
-	logRoutes := apiRoutes.Group("/logs")
+	logRoutes := apiRoutes.Group("/logs", middleware.AuthorizeJWT())
 	{
 		logRoutes.POST("/add", logController.AddLog)
 		logRoutes.POST("/upload", logController.Upload)

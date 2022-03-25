@@ -1,9 +1,9 @@
 package controller
 
 import (
-	"casbin-golang/model"
-	"casbin-golang/repository"
 	"fmt"
+	"fuckoff-server/model"
+	"fuckoff-server/repository"
 	"log"
 	"net/http"
 
