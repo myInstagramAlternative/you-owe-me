@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"fuckoff-server/model"
 	"fuckoff-server/repository"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -108,12 +107,17 @@ func (h logController) Upload(ctx *gin.Context) {
 	files := form.File["upload[]"]
 
 	for _, file := range files {
-		log.Println(file.Filename)
-
 		// Upload the file to specific dst.
 		ctx.SaveUploadedFile(file, file.Filename)
 	}
-	ctx.String(http.StatusOK, fmt.Sprintf("%d files uploaded!", len(files)))
+	ctx.JSON(http.StatusOK, model.Log{
+		Action: "Upload",
+		Details: model.Details{
+			Type: "Screenshots",
+			Data: fmt.Sprintf("%d files uploaded!", len(files)),
+		},
+		Status: "Success",
+	})
 }
 
 // func (h userController) UpdateUser(ctx *gin.Context) {
