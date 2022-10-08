@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"fuckoff-server/model"
 	"log"
+	"you-owe-me/model"
 
 	"gorm.io/gorm"
 )
@@ -51,9 +51,19 @@ func (u userRepository) AddUser(user model.User) (model.User, error) {
 }
 
 func (u userRepository) UpdateUser(user model.User) (model.User, error) {
+	var updateWith = user
 	if err := u.DB.First(&user, user.ID).Error; err != nil {
 		return user, err
 	}
+
+	// copy nonempty fields from updateWith to user
+	if updateWith.Name != "" {
+		user.Name = updateWith.Name
+	}
+	if updateWith.Email != "" {
+		user.Email = updateWith.Email
+	}
+
 	return user, u.DB.Model(&user).Updates(&user).Error
 }
 

@@ -2,14 +2,14 @@ package middleware
 
 import (
 	"fmt"
-	"fuckoff-server/utils"
 	"net/http"
+	"you-owe-me/utils"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 )
 
-//AuthorizeJWT -> to authorize JWT Token
+// AuthorizeJWT -> to authorize JWT Token
 func AuthorizeJWT() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		const BearerSchema string = "Bearer "

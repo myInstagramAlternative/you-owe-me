@@ -2,15 +2,15 @@ package controller
 
 import (
 	"fmt"
-	"fuckoff-server/model"
-	"fuckoff-server/repository"
-	"fuckoff-server/utils"
 	"net/http"
 	"strconv"
 	"strings"
+	"you-owe-me/model"
+	"you-owe-me/repository"
+	"you-owe-me/utils"
 
 	"github.com/casbin/casbin/v2"
-
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,9 +18,11 @@ import (
 type UserController interface {
 	AddUser(enforcer *casbin.Enforcer) gin.HandlerFunc
 	GetUser(*gin.Context)
+	GetMe(*gin.Context)
 	GetAllUser(*gin.Context)
 	SignInUser(*gin.Context)
 	UpdateUser(*gin.Context)
+	UpdateMe(*gin.Context)
 	DeleteUser(*gin.Context)
 }
 
@@ -28,7 +30,7 @@ type userController struct {
 	userRepo repository.UserRepository
 }
 
-//NewUserController -> returns new user controller
+// NewUserController -> returns new user controller
 func NewUserController(repo repository.UserRepository) UserController {
 	return userController{
 		userRepo: repo,
@@ -47,8 +49,36 @@ func (h userController) GetAllUser(ctx *gin.Context) {
 
 }
 
+func getMyId(ctx *gin.Context) float64 {
+	jwtToken := ctx.Request.Header.Get("Authorization")
+	splitToken := strings.Split(jwtToken, "Bearer ")
+	jwtToken = splitToken[1]
+	validatedJWT, err := utils.ValidateToken(jwtToken)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return 0
+
+	}
+	// get userID
+	userID := validatedJWT.Claims.(jwt.MapClaims)["userID"].(float64)
+	return userID
+}
+
+func (h userController) GetMe(ctx *gin.Context) {
+
+	user, err := h.userRepo.GetUser(int(getMyId(ctx)))
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+
+	}
+	ctx.JSON(http.StatusOK, user)
+
+}
+
 func (h userController) GetUser(ctx *gin.Context) {
 	id := ctx.Param("user")
+
 	intID, err := strconv.Atoi(id)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -105,7 +135,7 @@ func (h userController) AddUser(enforcer *casbin.Enforcer) gin.HandlerFunc {
 
 		}
 		//enforcer.AddGroupingPolicy(fmt.Sprint(user.ID), user.Role)
-		enforcer.AddGroupingPolicy(fmt.Sprint(user.ID), "patient")
+		enforcer.AddGroupingPolicy(fmt.Sprint(user.ID), "user")
 		user.Password = ""
 		ctx.JSON(http.StatusOK, user)
 
@@ -124,6 +154,24 @@ func (h userController) UpdateUser(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 	user.ID = uint(intID)
+	user, err = h.userRepo.UpdateUser(user)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+
+	}
+	ctx.JSON(http.StatusOK, user)
+
+}
+
+func (h userController) UpdateMe(ctx *gin.Context) {
+	var user model.User
+	var err error
+	if err := ctx.ShouldBindJSON(&user); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	user.ID = uint(getMyId(ctx))
 	user, err = h.userRepo.UpdateUser(user)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

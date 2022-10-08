@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fuckoff-server/model"
-	"fuckoff-server/route"
 	"log"
+	"you-owe-me/model"
+	"you-owe-me/route"
 
 	"github.com/joho/godotenv"
 )

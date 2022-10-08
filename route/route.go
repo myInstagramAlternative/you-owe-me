@@ -2,10 +2,10 @@ package route
 
 import (
 	"fmt"
-	"fuckoff-server/controller"
-	"fuckoff-server/middleware"
-	"fuckoff-server/repository"
 	"log"
+	"you-owe-me/controller"
+	"you-owe-me/middleware"
+	"you-owe-me/repository"
 
 	"github.com/casbin/casbin/v2"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
@@ -13,7 +13,7 @@ import (
 	"gorm.io/gorm"
 )
 
-//SetupRoutes : all the routes are defined here
+// SetupRoutes : all the routes are defined here
 func SetupRoutes(db *gorm.DB) {
 	httpRouter := gin.Default()
 
@@ -30,14 +30,23 @@ func SetupRoutes(db *gorm.DB) {
 	}
 
 	//add policy
-	if hasPolicy := enforcer.HasPolicy("doctor", "report", "read"); !hasPolicy {
-		enforcer.AddPolicy("doctor", "report", "read")
+	if hasPolicy := enforcer.HasPolicy("admin", "users", "read"); !hasPolicy {
+		enforcer.AddPolicy("admin", "users", "read")
 	}
-	if hasPolicy := enforcer.HasPolicy("doctor", "report", "write"); !hasPolicy {
-		enforcer.AddPolicy("doctor", "report", "write")
+	if hasPolicy := enforcer.HasPolicy("admin", "users", "write"); !hasPolicy {
+		enforcer.AddPolicy("admin", "users", "write")
 	}
-	if hasPolicy := enforcer.HasPolicy("patient", "report", "read"); !hasPolicy {
-		enforcer.AddPolicy("patient", "report", "read")
+	if hasPolicy := enforcer.HasPolicy("admin", "users", "readMe"); !hasPolicy {
+		enforcer.AddPolicy("user", "users", "readMe")
+	}
+	if hasPolicy := enforcer.HasPolicy("admin", "users", "writeMe"); !hasPolicy {
+		enforcer.AddPolicy("admin", "users", "writeMe")
+	}
+	if hasPolicy := enforcer.HasPolicy("user", "users", "readMe"); !hasPolicy {
+		enforcer.AddPolicy("user", "users", "readMe")
+	}
+	if hasPolicy := enforcer.HasPolicy("user", "users", "writeMe"); !hasPolicy {
+		enforcer.AddPolicy("user", "users", "writeMe")
 	}
 
 	userRepository := repository.NewUserRepository(db)
@@ -56,22 +65,24 @@ func SetupRoutes(db *gorm.DB) {
 
 	userProtectedRoutes := apiRoutes.Group("/users", middleware.AuthorizeJWT())
 	{
-		userProtectedRoutes.GET("/", middleware.Authorize("report", "read", enforcer), userController.GetAllUser)
-		userProtectedRoutes.GET("/:user", middleware.Authorize("report", "read", enforcer), userController.GetUser)
-		userProtectedRoutes.PUT("/:user", middleware.Authorize("report", "write", enforcer), userController.UpdateUser)
-		userProtectedRoutes.DELETE("/:user", middleware.Authorize("report", "write", enforcer), userController.DeleteUser)
-	}
 
-	logRepository := repository.NewLogRepository(db)
-	if err := logRepository.Migrate(); err != nil {
-		log.Fatal("User migrate err", err)
-	}
-	logController := controller.NewLogController(logRepository)
+		// Get all users
+		userProtectedRoutes.GET("/", middleware.Authorize("users", "read", enforcer), userController.GetAllUser)
 
-	logRoutes := apiRoutes.Group("/logs", middleware.AuthorizeJWT())
-	{
-		logRoutes.POST("/add", logController.AddLog)
-		logRoutes.POST("/upload", logController.Upload)
+		// Read user
+		userProtectedRoutes.GET("/:user", middleware.Authorize("users", "read", enforcer), userController.GetUser)
+
+		// Get me
+		userProtectedRoutes.GET("/me", middleware.Authorize("users", "readMe", enforcer), userController.GetMe)
+
+		// Update user
+		userProtectedRoutes.PUT("/:user", middleware.Authorize("users", "write", enforcer), userController.UpdateUser)
+
+		// Update me
+		userProtectedRoutes.PUT("/me", middleware.Authorize("users", "writeMe", enforcer), userController.UpdateMe)
+
+		// Delete user
+		userProtectedRoutes.DELETE("/:user", middleware.Authorize("users", "write", enforcer), userController.DeleteUser)
 	}
 
 	httpRouter.Run(":3000")
