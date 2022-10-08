@@ -65,19 +65,15 @@ func SetupRoutes(db *gorm.DB) {
 
 	userProtectedRoutes := apiRoutes.Group("/users", middleware.AuthorizeJWT())
 	{
-
 		// Get all users
 		userProtectedRoutes.GET("/", middleware.Authorize("users", "read", enforcer), userController.GetAllUser)
-
 		// Read user
 		userProtectedRoutes.GET("/:user", middleware.Authorize("users", "read", enforcer), userController.GetUser)
-
 		// Get me
 		userProtectedRoutes.GET("/me", middleware.Authorize("users", "readMe", enforcer), userController.GetMe)
 
 		// Update user
 		userProtectedRoutes.PUT("/:user", middleware.Authorize("users", "write", enforcer), userController.UpdateUser)
-
 		// Update me
 		userProtectedRoutes.PUT("/me", middleware.Authorize("users", "writeMe", enforcer), userController.UpdateMe)
 
