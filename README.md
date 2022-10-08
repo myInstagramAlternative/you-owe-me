@@ -1,20 +1,21 @@
-## Implementation of casbin on golang gorm projects
+# You owe me
 
-### Go through my article
+API for keeping track of who owes me what.
 
-1. [Understanding Casbin with different Access Control Model Configurations](https://medium.com/wesionary-team/understanding-casbin-with-different-access-control-model-configurations-faebc60f6da5) 
-2. [Authorization in Golang Projects using Casbin](https://medium.com/wesionary-team/authorization-in-golang-projects-using-casbin-f8fad744dae5)
+## Environment variables
+```Environment
+GO_USER
+GO_PASS
+GO_HOST
+GO_PORT
+GO_DBNAME
+GO_SSLMODE
+GO_TZ
+JWT_SECRET
+```
 
-### Running Project
+## DB
+gorm adapter using postgresql database.
 
-1. create Database `casbin-golang`
-2. run `go run main`
-
-
-### Casbin Workflow
-
-![Workflow](./casbin-workflow.jpg)
-
-### Middleware Casbin 
-
-<img src="./casbin-middleware.jpg">
+## Authentication and Authorization
+Classic JWT stuff w/o refresh token and casbin for authorization.
