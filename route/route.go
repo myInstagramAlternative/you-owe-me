@@ -36,17 +36,20 @@ func SetupRoutes(db *gorm.DB) {
 	if hasPolicy := enforcer.HasPolicy("admin", "users", "write"); !hasPolicy {
 		enforcer.AddPolicy("admin", "users", "write")
 	}
-	if hasPolicy := enforcer.HasPolicy("admin", "users", "readMe"); !hasPolicy {
-		enforcer.AddPolicy("user", "users", "readMe")
-	}
-	if hasPolicy := enforcer.HasPolicy("admin", "users", "writeMe"); !hasPolicy {
-		enforcer.AddPolicy("admin", "users", "writeMe")
-	}
+	// if hasPolicy := enforcer.HasPolicy("admin", "users", "readMe"); !hasPolicy {
+	// 	enforcer.AddPolicy("user", "users", "readMe")
+	// }
+	// if hasPolicy := enforcer.HasPolicy("admin", "users", "writeMe"); !hasPolicy {
+	// 	enforcer.AddPolicy("admin", "users", "writeMe")
+	// }
 	if hasPolicy := enforcer.HasPolicy("user", "users", "readMe"); !hasPolicy {
 		enforcer.AddPolicy("user", "users", "readMe")
 	}
 	if hasPolicy := enforcer.HasPolicy("user", "users", "writeMe"); !hasPolicy {
 		enforcer.AddPolicy("user", "users", "writeMe")
+	}
+	if hasPolicy := enforcer.HasPolicy("admin", "owes", "read"); !hasPolicy {
+		enforcer.AddPolicy("admin", "owes", "read")
 	}
 
 	userRepository := repository.NewUserRepository(db)
@@ -79,6 +82,19 @@ func SetupRoutes(db *gorm.DB) {
 
 		// Delete user
 		userProtectedRoutes.DELETE("/:user", middleware.Authorize("users", "write", enforcer), userController.DeleteUser)
+	}
+
+	oweRepository := repository.NewOweRepository(db)
+
+	oweController := controller.NewOweController(oweRepository)
+
+	oweProtectedRoutes := apiRoutes.Group("/owes", middleware.AuthorizeJWT())
+	{
+		// Get all owes
+		//oweProtectedRoutes.GET("/", middleware.Authorize("users", "read", enforcer), userController.GetAllUser)
+		// Read owe
+		oweProtectedRoutes.GET("/:uuid", middleware.Authorize("owes", "read", enforcer), oweController.GetOwe)
+
 	}
 
 	httpRouter.Run(":3000")
